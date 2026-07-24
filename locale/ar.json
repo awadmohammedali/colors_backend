@@ -1,0 +1,18 @@
+{
+  "generalError": "حدث خطأ ما ، الرجاء التواصل مع الإدارة.",
+  "authorizationRequired": "يجب عليك تسجيل الدخول اولا",
+  "tokenExpired": "لقد انتهت الجسلة، الرجاء تسجيل الدخول مرة اخرى",
+  "dosenotExist": "المعلومات المطلوبة غير موجودة",
+  "existingUser": "هذا الرقم موجود بالفعل",
+  "userNottExist": "هذا المستخدم غير موجود",
+  "invalidPhoneNumber": "الرقم المرفق غير صحيح",
+  "wrongCredintials": "الرجاء ارفاق اسم مستخدم وكلمة مرور صحيحين",
+  "room_dose_not_exsit": "هذه الغرفة غير موجودة",
+  "requiredFields": "الرجاء ارفاق جميع الحقول المطلوبة",
+  "room_not_exist": "لاتوجد غرفة لعب بهذا الرمز",
+  "coinNottExist": "لا توجد هذه العملة",
+  "noSuffecientCoins":"لا تملك عملات كافية",
+	"room_exist": "هذه الغرفة موجودة بالفعل"
+
+
+}

@@ -1,0 +1,17 @@
+{
+	"generalError": "Something went wrong, please contact your administrator.",
+	"authorizationRequired": "You are not authorized, Please login first",
+	"tokenExpired": "Your session is expired, kindly login again.",
+	"dosenotExist": "Data dose not exist",
+	"requiredFields": "Please fill up all required fields",
+	"existingUser": "This user is already registered",
+	"userNottExist": "This user dosen't exsit",
+	"invalidPhoneNumber": "Provided Number is invalid",
+	"wrongCredintials": "Please provide a valid credintials",
+	"room_dose_not_exsit": "This room dosen't exsit",
+	"noSuffecientCoins": "You have no suffecient coins",
+	"Error": "Error",
+	"room_not_exist": "this playing room dosen't exsit",
+	"coinNottExist": "This coin dosen't exsit",
+	"room_exist": "room already exist"
+}
