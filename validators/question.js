@@ -1,61 +1,89 @@
 import { body } from "express-validator";
 
+const isNonEmptyObject = (value) => {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    !Array.isArray(value) &&
+    Object.keys(value).length > 0
+  );
+};
+
 export const createQuestionValidation = [
   body("categoryId")
     .notEmpty()
     .withMessage("Category ID is required")
+    .bail()
     .isMongoId()
     .withMessage("Invalid category ID"),
+
   body("question")
     .notEmpty()
     .withMessage("Question is required")
-    .isObject()
-    .withMessage("Question must be an object"),
+    .bail()
+    .custom(isNonEmptyObject)
+    .withMessage("Question must be a non-empty object"),
+
   body("answer")
     .notEmpty()
     .withMessage("Answer is required")
-    .isObject()
-    .withMessage("Answer must be an object"),
-  body("fakeAnswer")
+    .bail()
+    .custom(isNonEmptyObject)
+    .withMessage("Answer must be a non-empty object"),
+
+  body("jokerAnswer")
     .optional()
-    .isObject()
-    .withMessage("Fake answer must be an object"),
+    .custom(isNonEmptyObject)
+    .withMessage("Joker answer must be a non-empty object"),
 ];
 
 export const updateQuestionValidation = [
   body("categoryId").optional().isMongoId().withMessage("Invalid category ID"),
+
   body("question")
     .optional()
-    .isObject()
-    .withMessage("Question must be an object"),
-  body("answer").optional().isObject().withMessage("Answer must be an object"),
-  body("fakeAnswer")
+    .custom(isNonEmptyObject)
+    .withMessage("Question must be a non-empty object"),
+
+  body("answer")
     .optional()
-    .isObject()
-    .withMessage("Fake answer must be an object"),
+    .custom(isNonEmptyObject)
+    .withMessage("Answer must be a non-empty object"),
+
+  body("jokerAnswer")
+    .optional()
+    .custom(isNonEmptyObject)
+    .withMessage("Joker answer must be a non-empty object"),
 ];
 
 export const bulkQuestionsValidation = [
-  body("question")
+  body("questions")
     .isArray({ min: 1 })
     .withMessage("Questions must be a non-empty array"),
-  body("question.*.categoryId")
+
+  body("questions.*.categoryId")
     .notEmpty()
     .withMessage("Category ID is required")
+    .bail()
     .isMongoId()
     .withMessage("Invalid category ID"),
-  body("question.*.question")
+
+  body("questions.*.question")
     .notEmpty()
     .withMessage("Question is required")
-    .isObject()
-    .withMessage("Question must be an object"),
-  body("question.*.answer")
+    .bail()
+    .custom(isNonEmptyObject)
+    .withMessage("Question must be a non-empty object"),
+
+  body("questions.*.answer")
     .notEmpty()
     .withMessage("Answer is required")
-    .isObject()
-    .withMessage("Answer must be an object"),
-  body("question.*.fakeAnswer")
+    .bail()
+    .custom(isNonEmptyObject)
+    .withMessage("Answer must be a non-empty object"),
+
+  body("questions.*.jokerAnswer")
     .optional()
-    .isObject()
-    .withMessage("Fake answer must be an object"),
+    .custom(isNonEmptyObject)
+    .withMessage("Joker answer must be a non-empty object"),
 ];

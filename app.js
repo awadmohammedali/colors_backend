@@ -6,6 +6,15 @@ import { fileURLToPath } from "url";
 import path from "path";
 import fs from "fs";
 import adminRouter from "./routes/admin.js";
+import { redisClient, subClient, connectRedis } from "./config/redis.js";
+import { createAdapter } from "@socket.io/redis-adapter";
+import http from "http";
+import { Server } from "socket.io";
+import { createClient } from "redis";
+import initializeRoomSocket from "./socket/room.socket.js";
+import initializeGameSocket from "./socket/game.socket.js";
+import registerBlueSocketHandlers from "./socket/blue.socket.js";
+import helmet from "helmet";
 
 // -----------------------------------------------------------------------------
 // Paths
@@ -14,6 +23,16 @@ import adminRouter from "./routes/admin.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Load environment variables from the project config file when they are not
+// already present in the process environment.
+if (!process.env.MONGODB_URI_DEV && !process.env.MONGODB_URI) {
+  try {
+    process.loadEnvFile(path.join(__dirname, "config", "dev.env"));
+  } catch (error) {
+    console.warn("Unable to load config/dev.env:", error.message);
+  }
+}
+
 // -----------------------------------------------------------------------------
 // App configuration
 // -----------------------------------------------------------------------------
@@ -21,7 +40,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 const PORT = process.env.PORT ?? 3000;
-const REDIS_URL = process.env.REDIS_URL;
+const MONGODB_URI = process.env.MONGODB_URI_DEV ?? process.env.MONGODB_URI;
 
 // -----------------------------------------------------------------------------
 // Logging
@@ -48,6 +67,7 @@ app.use(
   }),
 );
 
+app.use(helmet());
 // -----------------------------------------------------------------------------
 // Request parsers
 // -----------------------------------------------------------------------------
@@ -108,6 +128,16 @@ app.use((error, req, res, next) => {
   });
 });
 
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught exception:", error);
+  process.exit(1);
+});
+
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled rejection:", reason);
+  process.exit(1);
+});
+
 // -----------------------------------------------------------------------------
 // Database and server startup
 // -----------------------------------------------------------------------------
@@ -115,10 +145,42 @@ app.use((error, req, res, next) => {
 mongoose
   .connect(process.env.MONGODB_URI_DEV)
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`Server connected and running on port ${PORT}`);
+    console.log("MongoDB connected");
+
+    return connectRedis();
+  })
+  .then(() => {
+    console.log("Redis clients connected");
+
+    const server = http.createServer(app);
+
+    const io = new Server(server, {
+      cors: {
+        origin: "*",
+        methods: ["GET", "POST"],
+      },
+    });
+    io.adapter(createAdapter(redisClient, subClient));
+
+    io.on("connection", (socket) => {
+      console.log(`Socket connected: ${socket.id}`);
+
+      initializeRoomSocket(io, socket);
+      initializeGameSocket(io, socket);
+
+      //-------colors socket handlers--------//
+      registerBlueSocketHandlers(io, socket);
+
+      socket.on("disconnect", (reason) => {
+        console.log(`Socket disconnected: ${socket.id}. Reason: ${reason}`);
+      });
+    });
+
+    server.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error(`Mongoose database error: ${error}`);
+    console.error("Failed to start server:", error);
+    process.exit(1);
   });

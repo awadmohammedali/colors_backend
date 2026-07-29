@@ -1,6 +1,5 @@
 import express from "express";
 
-import isAdminAuth from "../middlewares/is-admin-auth.js";
 import { mongoIdValidation } from "../validators/common.js";
 import {
   createCategoryValidation,
@@ -67,36 +66,20 @@ const router = express.Router();
 |--------------------------------------------------------------------------
 */
 
-router.post(
-  "/admin/categories",
-  isAdminAuth,
-  createCategoryValidation,
-  postCategory,
-);
+router.post("/categories", createCategoryValidation, postCategory);
 
-router.get("/admin/categories", isAdminAuth, getCategories);
+router.get("/categories", getCategories);
 
-router.get(
-  "/admin/categories/:id",
-  isAdminAuth,
-  mongoIdValidation,
-  getCategoryDetails,
-);
+router.get("/categories/:id", mongoIdValidation, getCategoryDetails);
 
 router.put(
-  "/admin/categories/:id",
-  isAdminAuth,
+  "/categories/:id",
   mongoIdValidation,
   updateCategoryValidation,
   putCategory,
 );
 
-router.delete(
-  "/admin/categories/:id",
-  isAdminAuth,
-  mongoIdValidation,
-  deleteCategory,
-);
+router.delete("/categories/:id", mongoIdValidation, deleteCategory);
 
 /*
 |--------------------------------------------------------------------------
@@ -104,13 +87,13 @@ router.delete(
 |--------------------------------------------------------------------------
 */
 
-router.post("/admin/user", isAdminAuth, createUserValidation, postSignup);
+router.post("/user", createUserValidation, postSignup);
 
-router.get("/admin/users", isAdminAuth, getUsers);
+router.get("/users", getUsers);
 
-router.get("/admin/users/:id", isAdminAuth, mongoIdValidation, getUserDetails);
+router.get("/users/:id", mongoIdValidation, getUserDetails);
 
-router.delete("/admin/users/:id", isAdminAuth, mongoIdValidation, deleteUser);
+router.delete("/users/:id", mongoIdValidation, deleteUser);
 
 /*
 |--------------------------------------------------------------------------
@@ -118,21 +101,15 @@ router.delete("/admin/users/:id", isAdminAuth, mongoIdValidation, deleteUser);
 |--------------------------------------------------------------------------
 */
 
-router.post("/admin/color", isAdminAuth, createColorValidation, postColor);
+router.post("/color", createColorValidation, postColor);
 
-router.get("/admin/color", isAdminAuth, getColors);
+router.get("/color", getColors);
 
-router.get("/admin/color/:id", isAdminAuth, mongoIdValidation, getColorDetails);
+router.get("/color/:id", mongoIdValidation, getColorDetails);
 
-router.put(
-  "/admin/color/:id",
-  isAdminAuth,
-  mongoIdValidation,
-  updateColorValidation,
-  putColor,
-);
+router.put("/color/:id", mongoIdValidation, updateColorValidation, putColor);
 
-router.delete("/admin/color/:id", isAdminAuth, mongoIdValidation, deleteColor);
+router.delete("/color/:id", mongoIdValidation, deleteColor);
 
 /*
 |--------------------------------------------------------------------------
@@ -140,36 +117,20 @@ router.delete("/admin/color/:id", isAdminAuth, mongoIdValidation, deleteColor);
 |--------------------------------------------------------------------------
 */
 
-router.post(
-  "/admin/game-variants",
-  isAdminAuth,
-  createGameVariantValidation,
-  postGameVariant,
-);
+router.post("/game-variants", createGameVariantValidation, postGameVariant);
 
-router.get("/admin/game-variants", isAdminAuth, getGameVariants);
+router.get("/game-variants", getGameVariants);
 
-router.get(
-  "/admin/game-variants/:id",
-  isAdminAuth,
-  mongoIdValidation,
-  getGameVariantDetails,
-);
+router.get("/game-variants/:id", mongoIdValidation, getGameVariantDetails);
 
 router.put(
-  "/admin/game-variants/:id",
-  isAdminAuth,
+  "/game-variants/:id",
   mongoIdValidation,
   updateGameVariantValidation,
   putGameVariant,
 );
 
-router.delete(
-  "/admin/game-variants/:id",
-  isAdminAuth,
-  mongoIdValidation,
-  deleteGameVariant,
-);
+router.delete("/game-variants/:id", mongoIdValidation, deleteGameVariant);
 
 /*
 |--------------------------------------------------------------------------
@@ -177,43 +138,22 @@ router.delete(
 |--------------------------------------------------------------------------
 */
 
-router.post(
-  "/admin/question",
-  isAdminAuth,
-  createQuestionValidation,
-  postQuestion,
-);
+router.post("/question", createQuestionValidation, postQuestion);
 
-router.post(
-  "/admin/question/bulk",
-  isAdminAuth,
-  bulkQuestionsValidation,
-  postBulkQuestions,
-);
+router.post("/question/bulk", bulkQuestionsValidation, postBulkQuestions);
 
-router.get("/admin/question", isAdminAuth, getQuestions);
+router.get("/question", getQuestions);
 
-router.get(
-  "/admin/question/:id",
-  isAdminAuth,
-  mongoIdValidation,
-  getQuestionDetails,
-);
+router.get("/question/:id", mongoIdValidation, getQuestionDetails);
 
 router.put(
-  "/admin/question/:id",
-  isAdminAuth,
+  "/question/:id",
   mongoIdValidation,
   updateQuestionValidation,
   putQuestion,
 );
 
-router.delete(
-  "/admin/question/:id",
-  isAdminAuth,
-  mongoIdValidation,
-  deleteQuestion,
-);
+router.delete("/question/:id", mongoIdValidation, deleteQuestion);
 
 /*
 |--------------------------------------------------------------------------
@@ -221,13 +161,8 @@ router.delete(
 |--------------------------------------------------------------------------
 */
 
-router.get("/admin/app-config", isAdminAuth, getAppConfig);
+router.get("/app-config", getAppConfig);
 
-router.put(
-  "/admin/app-config",
-  isAdminAuth,
-  updateAppConfigValidation,
-  putAppConfig,
-);
+router.put("/app-config", updateAppConfigValidation, putAppConfig);
 
 export default router;

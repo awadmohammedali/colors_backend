@@ -78,12 +78,12 @@ export const getQuestionDetails = async (req, res, next) => {
 export const postQuestion = async (req, res, next) => {
   try {
     expressValidatorHandler(validationResult(req));
-    const { categoryId, question, answer, fakeAnswer } = req.body;
+    const { categoryId, question, answer, jokerAnswer } = req.body;
     const questionModel = new Question({
       categoryId: categoryId,
       question: question,
       answer: answer,
-      fakeAnswer: fakeAnswer,
+      jokerAnswer: jokerAnswer,
     });
 
     await question.save();
@@ -127,7 +127,7 @@ export const putQuestion = async (req, res, next) => {
 
     const questionModel = await Question.findById(req.params.id);
 
-    const { categoryId, question, answer, fakeAnswer } = req.body;
+    const { categoryId, question, answer, jokerAnswer } = req.body;
     if (!question) {
       const error = new Error(I18n.__(DOST_NOT_EXIST));
       error.statusCode = 404;
@@ -144,8 +144,8 @@ export const putQuestion = async (req, res, next) => {
     if (answer) {
       question.answer = answer;
     }
-    if (fakeAnswer) {
-      question.fakeAnswer = fakeAnswer;
+    if (jokerAnswer) {
+      question.jokerAnswer = jokerAnswer;
     }
 
     await questionModel.save();

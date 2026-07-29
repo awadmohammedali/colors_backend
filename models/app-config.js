@@ -20,7 +20,12 @@ const appConfigSchema = new Schema(
       type: String,
       default: "1.0.0",
     },
+    blueGameCategorySelections: {
+      type: Number,
+      default: 3,
+    },
   },
+
   {
     timestamps: true,
   },

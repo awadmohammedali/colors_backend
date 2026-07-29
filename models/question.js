@@ -16,14 +16,12 @@ const questionSchema = new Schema(
     },
 
     answer: {
-      type: Map,
-      of: String,
+      type: String,
       required: true,
     },
-    fakeAnswer: {
-      type: Map,
-      of: String,
-      default: {},
+    jokerAnswer: {
+      type: String,
+      default: "",
     },
   },
   {
