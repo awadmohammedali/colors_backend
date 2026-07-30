@@ -1,50 +1,64 @@
 import { getRoomData, saveRoomData } from "./repository.js";
-
+import { calculateFinalCategories } from "../games/game-function.js";
+import { getQuestion } from "../games/blue/questions-game.js";
+import { BLUE } from "../util/constants.js";
 export default function registerBlueSocketHandlers({ io, socket }) {
+  //-------------------------------------------------------------
+  // Blue Game Socket Handlers
+  //-------------------------------------------------------------
   socket.on(
-    "general-categories-selections-submitted",
+    "blue:categories-selected",
     async ({ roomId, playerId, selectedCategoryIds }, callback) => {
       try {
         if (!roomId || !playerId || !Array.isArray(selectedCategoryIds)) {
           return callback?.({
-            success: false,
+            code: 1,
             error: "Invalid request data",
           });
         }
 
-        const roomData = await getRoomData(roomId);
+        const roomData = await getRoomData({ roomId });
 
-        const playerExists = roomData.players.some(
+        const player = roomData.players.find(
           (player) => player.playerId === playerId,
         );
 
-        if (!playerExists) {
+        if (!player) {
           return callback?.({
-            success: false,
+            code: 1,
             error: "Player does not belong to this room",
           });
         }
 
-        savePlayerCategorySelections({
-          roomData,
-          playerId,
-          selectedCategoryIds,
-        });
+        player.selectedCategories = selectedCategoryIds;
 
-        await saveRoomData(roomId, roomData);
+        const allPlayersSubmitted = roomData.players.every(
+          (player) =>
+            Array.isArray(player.selectedCategories) &&
+            player.selectedCategories.length > 0,
+        );
 
-        socket.to(roomId).emit("blue:player-category-selections-submitted", {
-          playerId,
-        });
+        if (allPlayersSubmitted) {
+          calculateFinalCategories({
+            players: roomData.players,
+            maximumSelectedCategories: 4,
+          });
 
-        callback?.({
-          success: true,
+          await saveRoomData({ roomData, roomId });
+
+          io.to(roomId).emit("blue:host-category-selected");
+        } else {
+          await saveRoomData({ roomId, roomData });
+        }
+
+        return callback?.({
+          code: 0,
         });
       } catch (error) {
         console.error("Failed to save Blue category selections:", error);
 
-        callback?.({
-          success: false,
+        return callback?.({
+          code: 1,
           error: "Unable to save category selections",
         });
       }
@@ -52,38 +66,192 @@ export default function registerBlueSocketHandlers({ io, socket }) {
   );
 
   socket.on(
-    "blue:finalize-categories",
-    async ({ roomId, playerId }, callback) => {
+    "blue:host-category-selected",
+    async ({ roomId, categoryId }, callback) => {
       try {
-        const roomData = await getRoomData(roomId);
+        const qustion = await getQuestion({
+          categoryId,
+        });
+        const roomData = await getRoomData({ roomId });
+        roomData.gamesSettings.blue.question = qustion;
+        roomData.gamesSettings.blue.jokerAnswer = qustion.jokerAnswer;
+        roomData.gamesSettings.blue.rightAnswer = {
+          answer: qustion.answer,
+          isCorrect: true,
+        };
+        await saveRoomData({ roomId, roomData });
+        return callback?.({
+          code: 0,
+        });
+      } catch (error) {
+        console.error("Failed to start Blue game:", error);
+        return callback?.({
+          code: 1,
+          error: "Unable to start Blue game",
+        });
+      }
+    },
+  );
 
-        if (roomData.hostPlayerId !== playerId) {
+  socket.on("blue:start-game", async ({ roomId }, callback) => {
+    try {
+      const roomData = await getRoomData({ roomId });
+      callback?.({ code: 0, data: roomData.gamesSettings.blue });
+    } catch (error) {
+      console.error("Failed to start Blue game:", error);
+      return callback?.({
+        code: 1,
+        error: "Unable to start Blue game",
+      });
+    }
+  });
+
+  socket.on(
+    "blue:submit-fake-answer",
+    async ({ roomId, playerId, answer }, callback) => {
+      try {
+        if (!roomId || !playerId || !answer?.trim()) {
           return callback?.({
-            success: false,
-            error: "Only the host can finalize categories",
+            code: 1,
+            error: "Invalid request data",
           });
         }
 
-        finalizeBlueCategories({
-          roomData,
-          maximumSelectedCategories: 4,
+        const roomData = await getRoomData({ roomId });
+
+        const blueGame = roomData.games.blue;
+
+        if (!blueGame.question) {
+          return callback?.({
+            code: 1,
+            error: "No active Blue question",
+          });
+        }
+
+        if (blueGame.mainPlayerId === playerId) {
+          return callback?.({
+            code: 1,
+            error: "Main player cannot submit a fake answer",
+          });
+        }
+
+        const player = roomData.players.find(
+          (player) => player.playerId === playerId,
+        );
+
+        if (!player) {
+          return callback?.({
+            code: 1,
+            error: "Player does not belong to this room",
+          });
+        }
+
+        const alreadySubmitted = blueGame.playersAnswers.some(
+          (item) => item.playerId === playerId,
+        );
+
+        if (alreadySubmitted) {
+          return callback?.({
+            code: 1,
+            error: "Fake answer already submitted",
+          });
+        }
+
+        blueGame.playersAnswers.push({
+          isCorrect: false,
+          playerId,
+          answer: answer.trim(),
         });
 
-        await saveRoomData(roomId, roomData);
-
-        io.to(roomId).emit("blue:categories-finalized", {
-          selectedCategories: roomData.games.blue.selectedCategories,
-        });
+        await saveRoomData({ roomId, roomData });
 
         callback?.({
-          success: true,
+          code: 0,
+        });
+
+        if (allPlayersSubmitted) {
+          io.to(roomId).emit("blue:show-answers");
+        }
+      } catch (error) {
+        console.error("Failed to submit fake answer:", error);
+
+        callback?.({
+          code: 1,
+          error: "Unable to submit fake answer",
+        });
+      }
+    },
+  );
+
+  socket.on(
+    "blue:submit-answer",
+    async ({ roomId, playerId, answer }, callback) => {
+      try {
+        if (!roomId || !playerId) {
+          return callback?.({
+            code: 1,
+            error: "Invalid request data",
+          });
+        }
+
+        const roomData = await getRoomData({ roomId });
+        const blueGame = roomData.games.blue;
+
+        if (!blueGame.question) {
+          return callback?.({
+            code: 1,
+            error: "No active Blue question",
+          });
+        }
+
+        if (blueGame.mainPlayerId !== playerId) {
+          return callback?.({
+            code: 1,
+            error: "Only the main player can submit an answer",
+          });
+        }
+
+        if (blueGame.answer) {
+          return callback?.({
+            code: 1,
+            error: "Answer already submitted",
+          });
+        }
+
+        if (!blueGame.answer) {
+          return callback?.({
+            code: 1,
+            error: "Selected answer does not exist",
+          });
+        }
+
+        const mainPlayer = roomData.mainPlayerId !== playerId;
+
+        if (!mainPlayer) {
+          return callback?.({
+            code: 1,
+            error: "Player does not belong to this room",
+          });
+        }
+
+        calculationBlueColorScore({ answer, roomData });
+
+        await saveRoomData({ roomId, roomData });
+
+        callback?.({
+          code: 0,
+        });
+
+        io.to(roomId).emit("game:show-result", {
+          game: BLUE,
+          players: roomData.players,
         });
       } catch (error) {
-        console.error("Failed to finalize Blue categories:", error);
+        console.error("Failed to submit Blue answer:", error);
 
         callback?.({
-          success: false,
-          error: "Unable to finalize categories",
+          code: 1,
+          error: "Unable to submit answer",
         });
       }
     },

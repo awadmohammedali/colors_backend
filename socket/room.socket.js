@@ -21,7 +21,7 @@ export default function initializeRoomSocket(io, socket) {
       }
 
       // 2. Check if room already exists
-      const existingRoom = await getRoomData(roomId);
+      const existingRoom = await getRoomData({ roomId });
 
       if (existingRoom) {
         return callback({
@@ -37,7 +37,7 @@ export default function initializeRoomSocket(io, socket) {
       });
 
       // 4. Save room data in Redis
-      await saveRoomData(roomId, roomData);
+      await saveRoomData({ roomId, roomData });
 
       // 5. Add this socket to the Socket.IO room
       await socket.join(roomId);
@@ -70,7 +70,7 @@ export default function initializeRoomSocket(io, socket) {
         });
       }
 
-      const roomData = await getRoomData(roomId);
+      const roomData = await getRoomData({ roomId });
 
       if (!roomData) {
         return callback({
@@ -137,7 +137,7 @@ export default function initializeRoomSocket(io, socket) {
         });
       }
 
-      const roomData = await getRoomData(roomId);
+      const roomData = await getRoomData({ roomId });
 
       if (!roomData) {
         return callback({
@@ -201,7 +201,7 @@ export default function initializeRoomSocket(io, socket) {
                 });
               }
 
-              const latestRoomData = await getRoomData(roomId);
+              const latestRoomData = await getRoomData({ roomId });
 
               if (!latestRoomData) {
                 return callback({
@@ -228,7 +228,7 @@ export default function initializeRoomSocket(io, socket) {
                 isAdmin: false,
               });
               latestRoomData.players.push(newPlayer);
-              await saveRoomData(roomId, latestRoomData);
+              await saveRoomData({ roomId, roomData: latestRoomData });
 
               // The joining player's socket now joins the Socket.IO room.
               await socket.join(roomId);
@@ -276,7 +276,7 @@ export default function initializeRoomSocket(io, socket) {
         });
       }
 
-      const roomData = await getRoomData(roomId);
+      const roomData = await getRoomData({ roomId });
 
       if (!roomData) {
         return callback({
@@ -351,7 +351,7 @@ export default function initializeRoomSocket(io, socket) {
         });
       }
 
-      const roomData = await getRoomData(roomId);
+      const roomData = await getRoomData({ roomId });
 
       if (!roomData) {
         return callback({
@@ -381,7 +381,7 @@ export default function initializeRoomSocket(io, socket) {
       const isHost = roomData.hostPlayerId === playerId;
 
       if (isHost) {
-        await deleteRoomData(roomId);
+        await deleteRoomData({ roomId });
 
         io.to(roomId).emit("room:closed", {
           roomId,
@@ -436,7 +436,7 @@ export default function initializeRoomSocket(io, socket) {
         });
       }
 
-      const roomData = await getRoomData(roomId);
+      const roomData = await getRoomData({ roomId });
 
       if (!roomData) {
         return callback({

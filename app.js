@@ -15,7 +15,7 @@ import initializeRoomSocket from "./socket/room.socket.js";
 import initializeGameSocket from "./socket/game.socket.js";
 import registerBlueSocketHandlers from "./socket/blue.socket.js";
 import helmet from "helmet";
-
+import { initializeAppConfig } from "./config/app-config.js";
 // -----------------------------------------------------------------------------
 // Paths
 // -----------------------------------------------------------------------------
@@ -176,7 +176,9 @@ mongoose
       });
     });
 
-    server.listen(PORT, () => {
+    server.listen(PORT, async () => {
+      await initializeAppConfig();
+
       console.log(`Server running on port ${PORT}`);
     });
   })

@@ -10,8 +10,7 @@ const questionSchema = new Schema(
       required: true,
     },
     question: {
-      type: Map,
-      of: String,
+      type: String,
       required: true,
     },
 

@@ -6,7 +6,6 @@ const appConfigSchema = new Schema(
   {
     key: {
       type: String,
-      default: "APP_CONFIG",
       unique: true,
       immutable: true,
     },
@@ -22,7 +21,19 @@ const appConfigSchema = new Schema(
     },
     blueGameCategorySelections: {
       type: Number,
-      default: 3,
+      default: 4,
+    },
+    stagesCount: {
+      type: Number,
+      default: 12,
+    },
+    whiteColorPercentage: {
+      type: Number,
+      default: 12,
+    },
+    scoresValue: {
+      type: Map,
+      of: String,
     },
   },
 
